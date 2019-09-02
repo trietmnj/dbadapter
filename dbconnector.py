@@ -98,9 +98,8 @@ class DatabaseManager:
             return data
 
     def testQuery(self, sql):
-        '''Limit selected data to the first 10 entries'''
-        sql += " limit 10"
-        return self.getData(sql)
+        """Limit selected data to the first 10 entries - implement in adapter"""
+        pass
 
     def close(self):
         """

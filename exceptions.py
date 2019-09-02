@@ -3,3 +3,6 @@ class SQLDropException(Exception):
 
 class FalseVerifyException(Exception):
     pass
+
+class InvalidTestQuery(Exception):
+    pass
