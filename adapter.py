@@ -32,6 +32,7 @@ class SQLServer(DatabaseManager):
 
         return self.getData(sql)
 
+
 class PostgreSQL(DatabaseManager):
     """Adapt base connector to a PostgreSQL server"""
     def __init__(self, credentials):
