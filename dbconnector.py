@@ -1,28 +1,37 @@
+from itertools import compress
+
 import pandas as pd
 import re
 
-import exceptions
+from dbadapter import exceptions
 
 
 class DatabaseManager:
     """
-    Manages the connection to a PostgreSQL database.
-    Make sure to run .commit() to update changes.
-
-    :methods:
-        __init__
-        __del__
-        createTable
-        commit
-        getData
-        testQuery
-        close
-
-    :attributes (read-only):
-        conn
-        cursor
+    Base class with generalized database functionalities
     """
     _conn, _cursor = None, None
+
+    def __init_subclass__(cls):
+        """Enforce methods implementation in derived classes"""
+        attrs = [
+            'setupConnection', 'getData', 'dropTableIfExists', 'genSQLCreateTable']
+        for attr in attrs:
+            if not hasattr(cls, attr): 
+                raise NotImplementedError(f'Must implement {attr} in {cls}')
+
+    def __init__(self, credentials):
+        self.setupConnection(credentials)
+        print('Database connection opened.')
+
+    def __enter__(self):
+        """Set up context manager"""
+        return self
+
+    def __exit__(self):  # __exit__ will trigger even for error raised 
+        """Clean up"""   # during the with statement
+        self.close()
+        print('Database connection closed.')
 
     @property
     def conn(self):
@@ -38,14 +47,6 @@ class DatabaseManager:
         '''Commit pending transactions to database'''
         self.conn.commit()
 
-    def __init__(self):
-        '''Setup connection - implement in derived classes '''
-        pass
-
-    def __del__(self):
-        '''Close connection to database'''
-        self.close()
-
     def createTable(self, table: str, dataVars: dict, foreignKeys=[], drop=False, verify=False):
         '''
         Drop and recreate table. Must set verify to authenticate action.
@@ -58,23 +59,13 @@ class DatabaseManager:
             verify=True
             )
         '''
-
         if not verify:
             raise exceptions.FalseVerifyException(
                 'Must set verify=True to create new table')
         if drop:
-            sql = 'DROP TABLE IF EXISTS {};'.format(table)
-            self.cursor.execute(sql)
-            self.commit()
-
-        # create table
-        sql = '''CREATE TABLE IF NOT EXISTS {} (
-            {}_id SERIAL PRIMARY KEY'''.format(table, table)
-        for key in foreignKeys:
-            sql += ', {}_id INTEGER'.format(key)
-        for var in dataVars.items():
-            sql += ', {} {}'.format(var[0], var[1])
-        sql += ');'
+            self.dropTableIfExists(table)
+        sql = self.genSQLCreateTable(table, dataVars, foreignKeys)
+        
         self.cursor.execute(sql)
         self.commit()
 
@@ -113,7 +104,7 @@ class DatabaseManager:
         if not verify:
             raise exceptions.FalseVerifyException(
                 'Must set verify=True to run custom SQL')
-
+        sql = sql.replace('\n', ' ').strip()
         self.cursor.execute(sql)
         self.commit()
 
