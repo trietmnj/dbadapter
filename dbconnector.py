@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+import pyodbc
 
 from dbadapter import exceptions
 
@@ -59,7 +60,10 @@ class DatabaseManager:
             raise exceptions.SQLDropException(
                 'SQL query is specifying a drop command')
         data = pd.read_sql(sql, self._conn)
+
         if len(data) == 0:
+            return None
+        elif len(data)==1 and len(data.columns)==1 and data.iloc[0,0] is None:
             return None
         else:
             return data
@@ -81,8 +85,13 @@ class DatabaseManager:
             raise exceptions.FalseVerifyException(
                 'Must set verify=True to run custom SQL')
         sql = sql.replace('\n', ' ').strip()
-        self.cursor.execute(sql)
-        self.commit()
+        try:
+            self.cursor.execute(sql)
+            self.commit()
+        except pyodbc.ProgrammingError as e:
+            print('Problem SQL:')
+            print(sql)
+            raise e
 
     def queryId(self, selectSql, insertSql):
         """Query for key, ensures obs exists"""
