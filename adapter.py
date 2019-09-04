@@ -53,7 +53,7 @@ class SQLServer(DatabaseManager):
             )
         """
         pkey = table if '.' not in table else re.findall(
-            "(?<=\.)\w+", 'insiderTrading.Trade')[0]
+            "(?<=\.)\w+", table)[0]
         sql = f"""CREATE TABLE {table} (
             {pkey.lower()}_id INT NOT NULL IDENTITY PRIMARY KEY"""
         for var in dataVars.items():
