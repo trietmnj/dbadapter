@@ -1,5 +1,3 @@
-from itertools import compress
-
 import pandas as pd
 import re
 
@@ -15,10 +13,10 @@ class DatabaseManager:
     def __init_subclass__(cls):
         """Enforce methods implementation in derived classes"""
         attrs = [
-            'setupConnection', 'getData', 'dropTableIfExists', 'genSQLCreateTable']
+            'setupConnection', 'getData', 'dropTableIfExists', 'createTable']
         for attr in attrs:
             if not hasattr(cls, attr): 
-                raise NotImplementedError(f'Must implement {attr} in {cls}')
+                raise NotImplementedError(f'{attr}() not implemented in {cls}')
 
     def __init__(self, credentials):
         self.setupConnection(credentials)
@@ -28,7 +26,7 @@ class DatabaseManager:
         """Set up context manager"""
         return self
 
-    def __exit__(self):  # __exit__ will trigger even for error raised 
+    def __exit__(self, type, value, traceback):  # __exit__ will trigger even for error raised 
         """Clean up"""   # during the with statement
         self.close()
         print('Database connection closed.')
@@ -47,35 +45,13 @@ class DatabaseManager:
         '''Commit pending transactions to database'''
         self.conn.commit()
 
-    def createTable(self, table: str, dataVars: dict, foreignKeys=[], drop=False, verify=False):
-        '''
-        Drop and recreate table. Must set verify to authenticate action.
-
-        db.createTable(
-            table='customer', 
-            dataVars=dict(name='VARCHAR(20)', address='VARCHAR(50)'),
-            foreignKeys=['store', 'address']
-            drop=True,
-            verify=True
-            )
-        '''
-        if not verify:
-            raise exceptions.FalseVerifyException(
-                'Must set verify=True to create new table')
-        if drop:
-            self.dropTableIfExists(table)
-        sql = self.genSQLCreateTable(table, dataVars, foreignKeys)
-        
-        self.cursor.execute(sql)
-        self.commit()
-
     def getData(self, sql: str) -> pd.DataFrame:
-        '''
+        """
         Returns query data inside a DataFrame. Returns None if there is no 
         corresponding entry
         
         data = db.getData('SELECT * FROM customer')
-        '''
+        """
         if 'drop' in sql and (
             len(re.findall("(?<=').+drop.+(?=')", sql)) \
                 != len(re.findall('drop', sql))): # check for malicious DROP
@@ -100,7 +76,7 @@ class DatabaseManager:
         self.conn.close()
 
     def runSQL(self, sql: str, verify=False):
-        "Run manual SQL, must verify"
+        """Run manual SQL, must verify"""
         if not verify:
             raise exceptions.FalseVerifyException(
                 'Must set verify=True to run custom SQL')
