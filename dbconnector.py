@@ -88,7 +88,7 @@ class DatabaseManager:
         try:
             self.cursor.execute(sql)
             self.commit()
-        except pyodbc.ProgrammingError as e:
+        except (pyodbc.ProgrammingError, pyodbc.DataError) as e:
             print('Problem SQL:')
             print(sql)
             raise e
