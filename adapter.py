@@ -13,7 +13,7 @@ class SQLServer(DatabaseManager):
         import pyodbc
         connString = (
             'DRIVER={ODBC Driver 17 for SQL Server};'
-            f"SERVER={credentials['server']},1433;"
+            f"SERVER={credentials['server']};"
             f"DATABASE={credentials['database']};"
             f"UID={credentials['username']};"
             f"PWD={credentials['password']}")
