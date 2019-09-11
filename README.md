@@ -26,6 +26,8 @@ Usage:
 
 
 settings.ini file should look like:
+
+
     [auth]
     server: <x.x.x.x,xxxx>
     database: <databaseName>
