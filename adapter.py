@@ -1,3 +1,4 @@
+"""Idiosyncratic adapters to different sql management systems"""
 import re
 import os
 import sys

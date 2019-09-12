@@ -1,3 +1,4 @@
+"""Contains a derivable base class with general database io functionalities"""
 import pandas as pd
 import re
 import pyodbc

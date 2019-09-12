@@ -1,3 +1,4 @@
+"""Exceptions dump"""
 class SQLDropException(Exception):
     pass
 
